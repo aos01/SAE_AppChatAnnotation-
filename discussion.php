@@ -4,7 +4,7 @@
 
 session_start();
 
-if (!isset($_SESSION['user_data'])) // Si l'utilisateur n'est pas authentifié/déconnecté, redirigez-le vers la page de connexion
+if (!isset($_SESSION['user_data'])) // Si l'utilisateur n'est pas authentifié/déconnecté, il sera redirigé vers la page de connexion
 {
 	header('location:index.php');
 }
@@ -32,14 +32,14 @@ $user_data = $user_object->get_user_all_data();
 		<link rel="stylesheet" href="style_discussion.css">
 		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
-		<!-- JavaScript de base d'amorçage -->
+		<!-- Bootstrap core JavaScript -->
 		<script src="vendor-front/jquery/jquery.min.js"></script>
 		<script type="text/javascript" src="vendor-front/parsley/dist/parsley.min.js"></script>
 		
 	</head>
 	<body>
 
-		<div class="container"> <!--container-fluid-->
+		<div class="container">
 			<div class="sidebar" id="sidebar">
 				<div>
 					<img src="img/profile.png" alt="profil" class="user_icon">
@@ -88,22 +88,19 @@ $user_data = $user_object->get_user_all_data();
 							$user_object->setUserId($login_user_id);
 						?>
 
-						<!-- Afficher tous les utilisateurs/membres du chat (sur le côté gauche de la page) et leur statut en ligne/hors ligne (basé sur la colonne « is_online » de la table de base de données « Utilisateur »)-->
 						<div class="list-group" style="max-height: 80vh; overflow-y: auto; -webkit-overflow-scrolling: touch;">
 						<?php
 								foreach ($user_data as $key => $user)
 								{
-									// Afficher le statut de l'utilisateur en ligne/hors ligne (ici avec le cas « Chat en tête-à-tête/privé) (basé sur onOpen() et onClose du gestionnaire WebSocket personnalisé Chat.php Class)
-									$icon = '<i class="offline"></i>'; 
+									$icon = '<i class="offline"></i>'; // Afficher un cercle « rouge » pour indiquer le statut « Hors-ligne » de l'utilisateur
 
-								// Si l'utilisateur est authentifié/connecté (en fonction de la colonne `is_online` de la table de base de données `User`, et non de la session du navigateur), affichez le cercle 'vert' pour indiquer le statut de l'utilisateur 'En ligne'
 									if ($user['is_online'])
 									{
-										$icon = '<i class="online"></i>'; // Afficher un cercle « vert » pour indiquer le statut « En ligne » de l'utilisateurs
+										$icon = '<i class="online"></i>'; // Afficher un cercle « vert » pour indiquer le statut « En ligne » de l'utilisateur
 									}
 
 
-									// Pour afficher tous les utilisateurs/membres du chat SAUF l'utilisateur authentifié/connecté (nous ne voulons pas afficher l'utilisateur actuellement authentifié. Nous voulons les exclure.)
+									// Pour afficher tous les utilisateurs/membres du chat SAUF l'utilisateur authentifié/connecté
 									if ($user['user_id'] != $login_user_id) 
 									{
 										echo "
@@ -140,7 +137,7 @@ $user_data = $user_object->get_user_all_data();
 		$(document).ready(function(){
 			
 
-			var receiver_userid = ''; // L'utilisateur sur lequel l'utilisateur authentifié/connecté a cliqué (dans la liste des utilisateurs) pour lui envoyer (il/elle) un message de discussion « privé »
+			var receiver_userid = ''; // L'utilisateur sur lequel l'utilisateur authentifié/connecté a cliqué (dans la liste des utilisateurs) pour lui envoyer (il/elle) un message.
 
 
 			// Gestion de la partie côté client (navigateur) de la connexion WebSocket (en utilisant JavaScript)
@@ -153,11 +150,6 @@ $user_data = $user_object->get_user_all_data();
 			
 				console.log('Connection Established!');
 			};
-
-			
-
-
-
 			
 			conn.onmessage = function(event)
 			{
@@ -166,7 +158,7 @@ $user_data = $user_object->get_user_all_data();
 
 				if (!data.error) {
 
-					// Note: Pour afficher le statut de l'utilisateur en ligne/hors ligne, avec le chat « One-to-One/Privé », nous nous sommes appuyés sur les méthodes onOpen() et onClose() de la classe Chat.php du gestionnaire WebSocket personnalisé (qui est le meilleur moyen car c'est réel). -time et Instantané), mais avec le Chat 'Groupe', nous dépendions de la colonne `is_online` de la table de la base de données `User` (ce qui est une mauvaise idée, car un utilisateur peut simplement fermer le navigateur et ne cliquez pas sur Déconnexion, et s'ils ne cliquent pas sur Déconnexion, la valeur de la colonne « is_online » ne sera pas modifiée, alors leur statut en ligne/hors ligne sera toujours « En ligne »).
+					//Pour afficher le statut de l'utilisateur en ligne/hors ligne.
 					if (data.status_type == 'Online') 
 					{
 						$('#userstatus_' + data.user_id).html('<i class="online"></i>'); 
@@ -189,19 +181,13 @@ $user_data = $user_object->get_user_all_data();
 							var myNotificationAudioPath = 'vendor-front/sounds/mixkit-arabian-mystery-harp-notification-2489.wav';
 						}
 
-						// Audio quand y'a un message
+						// Audio quand il y a un message
 						let myAudio = new Audio(myNotificationAudioPath);
 						myAudio.play(); 
-
-										
-						
+					
 						if (receiver_userid == data.userId || data.from == 'Me') {
 							if ($('#is_active_chat').val() == 'Yes') {
-								// Déterminez le style pour les messages envoyés ou reçus
-								// Déterminez le style pour les messages envoyés ou reçus
 
-
-								/// premier solution de message long
 								const isSender = data.from == 'Me';
 								const alignmentStyle = isSender 
 									? 'display: flex; justify-content: flex-end; margin-bottom: 10px;' 
@@ -210,7 +196,7 @@ $user_data = $user_object->get_user_all_data();
 									? 'max-width: 70%; padding: 10px; border-radius: 15px; background-color: #d1e7dd; color: #0f5132; text-align: right; word-wrap: break-word; word-break: break-word; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);'
 									: 'max-width: 70%; padding: 10px; border-radius: 15px; background-color: #f8d7da; color: #842029; text-align: left; word-wrap: break-word; word-break: break-word; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);';
 
-								// Construisez le HTML pour le message avec styles en ligne
+								// Construit le HTML pour le message avec styles en ligne
 								const html_data = `
 								<div style="${alignmentStyle}">
 									<div style="${bubbleStyle}">
@@ -222,10 +208,10 @@ $user_data = $user_object->get_user_all_data();
 								</div>
 								`;
 
-								// Ajoutez le message dans la zone de discussion
+								// Ajoute le message dans la zone de discussion
 								$('#messages_area').append(html_data);
-								$('#messages_area').scrollTop($('#messages_area')[0].scrollHeight); // Faites défiler vers le bas
-								$('#chat_message').val(''); // Effacez le champ de saisie après envoi ou réception
+								$('#messages_area').scrollTop($('#messages_area')[0].scrollHeight); // Fait défiler vers le bas
+								$('#chat_message').val(''); // Efface le champ de saisie après envoi ou réception
 
 							}
 						}
@@ -241,7 +227,7 @@ $user_data = $user_object->get_user_all_data();
 			};
 
 
-			function make_chat_area(username)// Lorsqu'on clique sur un utilisateur pour discuter (sur le côté gauche dans le chat privé) // Le paramètre de la fonction username est le nom d'utilisateur de l'utilisateur cliqué (destinataire)
+			function make_chat_area(username)// Lorsqu'on clique sur un utilisateur pour discuter (sur le côté gauche) // Le paramètre de la fonction username est le nom d'utilisateur de l'utilisateur cliqué (destinataire)
 			{
 				var html = `
 					<div style="border: 1px solid #e0e0e0; border-radius: 10px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
@@ -284,7 +270,7 @@ $user_data = $user_object->get_user_all_data();
 				$('#chat_area').html(html); 
 			}
 
-			// Lorsque l'utilisateur authentifié/connecté clique sur un utilisateur dans la liste des utilisateurs de gauche pour lui envoyer un message de discussion, afficher/afficher la zone de discussion privée, récupérer l'historique des discussions avec cet utilisateur via un AJAX. demande et supprimez le nombre/numéro de messages « non lus » de notification push de couleur rouge
+			// Lorsque l'utilisateur authentifié/connecté clique sur un utilisateur dans la liste des utilisateurs de gauche pour lui envoyer un message, afficher/afficher la zone de discussion, récupérer l'historique des discussions avec cet utilisateur via un AJAX.
 			$(document).on('click', '.select_user', function(){
 				receiver_userid  = $(this).data('userid');   
 				var from_user_id = $('#login_user_id').val(); 
@@ -297,7 +283,7 @@ $user_data = $user_object->get_user_all_data();
 				$('#is_active_chat').val('Yes'); 
 
 
-				//Récupère l'historique de discussion privé de l'utilisateur authentifié/connecté avec l'utilisateur sélectionné dans la table de base de données `Message` en utilisant AJAX
+				//Récupère l'historique de discussion de l'utilisateur authentifié/connecté avec l'utilisateur sélectionné dans la table de base de données `Message` en utilisant AJAX
 				$.ajax({
 					url     :"action.php",
 					method  :"POST",
@@ -314,7 +300,6 @@ $user_data = $user_object->get_user_all_data();
 							let html_data = '';
 
 							for (let count = 0; count < data.length; count++) {
-								// Déterminez le style pour les messages envoyés ou reçus
 								const isSender = data[count].from_user_id == from_user_id; // Vérifie si l'utilisateur authentifié a envoyé le message
 								const alignmentStyle = isSender 
 								? 'display: flex; justify-content: flex-end; margin-bottom: 10px;' 
@@ -325,7 +310,7 @@ $user_data = $user_object->get_user_all_data();
 
 								const username = isSender ? 'Vous' : data[count].from_username;
 
-								// Construisez le HTML pour chaque message
+								// Construction du HTML pour chaque message
 								html_data += `
 									<div style="${alignmentStyle}">
 										<div style="${bubbleStyle}">
@@ -365,7 +350,7 @@ $user_data = $user_object->get_user_all_data();
 				receiver_userid = ''; 
 			});
 
-			// Gestion de la soumission de formulaire HTML de chat 'en tête-à-tête/privé' (envoi de messages à un utilisateur particulier/spécifique, PAS à tous les utilisateurs comme avec le chat 'Groupe') (Gestion de l'envoi de messages de chat à la méthode onMessage() du gestionnaire WebSocket personnalisé (classe Chat.php)
+			// Gestion de la soumission de formulaire HTML de chat
 			$(document).on('submit', '#chat_form', function(event){
 				event.preventDefault(); 
 

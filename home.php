@@ -1,10 +1,8 @@
 <?php
-// This file is responsible for 'One-to-One' Chat ('Private' Chat).
-
 
 session_start();
 
-if (!isset($_SESSION['user_data'])) // If the user is unauthenticated / logged out, redirect them to the login page
+if (!isset($_SESSION['user_data']))
 {
 	header('location:index.php');
 }
@@ -124,6 +122,8 @@ $user_data = $user_object->get_user_all_data();
 
                 var conn = new WebSocket('ws://localhost:8080?token=<?php echo $token; ?>');
 
+                // Déconnexion (Lorsque vous cliquez sur le bouton Déconnexion (le bouton est dans ce fichier)) (N.B. Cela met à jour la colonne `is_online` de la table de base de données `Utilisateur` de 'Connexion' à 'Déconnexion')
+
                 $('#logout').click(function(){
                     user_id = $('#login_user_id').val();
 
@@ -134,14 +134,14 @@ $user_data = $user_object->get_user_all_data();
                             user_id: user_id,
                             action : 'leave'
                         },
-                        success:function(data) // 'data' is the response from the server (server-side/backend). It contains the 'status' key. Check the first if condition in action.php
+                        success:function(data)
                         {
                             var response = JSON.parse(data);
 
-                            if (response.status == 1) // 'data' is the response from the server (server-side/backend). It contains the 'status' key. Check the first if condition in action.php
+                            if (response.status == 1)
                             {
-                                conn.close(); // Closes the WebSocket connection
-                                location = 'index.php'; // Redirect the user to the Login Page (index.php) after logging out
+                                conn.close();
+                                location = 'index.php';
                             }
                         }
                     })
