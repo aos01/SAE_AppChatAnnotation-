@@ -366,8 +366,7 @@ $user_data = $user_object->get_user_all_data();
 							userId         : user_id,
 							msg            : message,
 							receiver_userid:receiver_userid,
-							emotion		   : emotion,
-							command        :'private' 
+							emotion		   : emotion
 						};
 					
 					conn.send(JSON.stringify(data)); 
