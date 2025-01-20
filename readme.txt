@@ -2,7 +2,7 @@ Pour utiliser l'application, il faut :
 
 1) Installer XAMPP en installant bien Apache et PHPMyAdmin.
 
-2) Installer Ratchet en suivant cette vidéo : https://youtu.be/Bk45OPROcOo?si=cn7VZQ3Lf2IBz0pp
+2) Installer Ratchet en suivant cette vidéo et installer Composer : https://youtu.be/Bk45OPROcOo?si=cn7VZQ3Lf2IBz0pp  | https://getcomposer.org/download/
 
 3) Placer le dossier du projet dans le dossier "htdocs" de xampp.
 
