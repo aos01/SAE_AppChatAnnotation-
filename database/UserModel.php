@@ -104,11 +104,6 @@ class UserModel
 		return $this->user_connection_id;
 	}
 
-	function make_avatar($character)
-	{
-	    return 'img/profile.png';
-	}
-
 	function get_user_data_by_email()
 	{
 		$query = 
