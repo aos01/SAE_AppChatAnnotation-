@@ -247,7 +247,8 @@ class UserModel
 	function get_user_all_data()
 	{
 		$query =
-			"SELECT * FROM User"
+			"SELECT * FROM User
+			 ORDER BY is_online DESC"
 		;
 
 		$stmt = $this->connect->prepare($query);
