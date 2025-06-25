@@ -1,40 +1,42 @@
 <?php
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
-use PHPMailer\PHPMailer\Exception;
+session_start();
 
-require 'vendor/autoload.php';
+if (isset($_SESSION['user_data'])) {
+    header('location:home.php');
+}
 
 $error = '';
-$success_message = '';
+$success = '';
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    session_start();
-
-    if (isset($_SESSION['user_data'])) {
-        header('location:discussion.php');
-        exit;
-    }
-
+if (isset($_POST['register'])) {
     require_once('database/UserModel.php');
 
     $user_object = new UserModel;
 
-    $user_object->setUsername($_POST['username']);
-    $user_object->setEmail($_POST['email']);
-    $user_object->setPasswordHash($_POST['password']);
-    $user_object->setCreatedAt(date('Y-m-d H:i:s'));
-
-    $user_data = $user_object->get_user_data_by_email();
-
-    if (is_array($user_data) && count($user_data) > 0) {
-        $error = 'Cet email existe déjà !';
+    // MODIFICATION : Validation côté serveur avec vérification unicité nom d'utilisateur
+    if (empty($_POST['username']) || empty($_POST['email']) || empty($_POST['password_hash']) || empty($_POST['confirm_password'])) {
+        $error = 'Veuillez remplir tous les champs.';
+    } elseif ($_POST['password_hash'] !== $_POST['confirm_password']) {
+        $error = 'Les mots de passe ne correspondent pas.';
+    } elseif (strlen($_POST['password_hash']) < 6) {
+        $error = 'Le mot de passe doit contenir au moins 6 caractères.';
+    } elseif (strlen($_POST['username']) < 3) {
+        $error = 'Le nom d\'utilisateur doit contenir au moins 3 caractères.';
     } else {
-        if ($user_object->save_data()) {
-            $success_message = 'Inscription réussie !';
+        $user_object->setUsername($_POST['username']);
+        $user_object->setEmail($_POST['email']);
+        $user_object->setPasswordHash($_POST['password_hash']); // Sera haché dans UserModel
+        $user_object->setCreatedAt(date('Y-m-d H:i:s'));
+
+        $result = $user_object->save_data();
+
+        if ($result['success']) {
+            $_SESSION['success_message'] = $result['message'];
+            header('location:index.php');
+            exit();
         } else {
-            $error = "Une erreur s'est produite. Veuillez réessayer !";
+            $error = $result['message'];
         }
     }
 }
@@ -50,49 +52,80 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <link rel="icon" type="image/x-icon" href="img/bubble-chat.png">
     </head>
     <body>
-
-        <div class="container_signin">
-            <img class="image-section" src="img/img_signin.avif" alt="image" height="600" width="500">
+        <div class="container_login">
+            <img class="image-section" src="img/img_signin.avif" alt="image" height="500" width="400">
 
             <div class="form-section">
-
                 <h1>Inscription</h1>
-                <p>Commencez par créer un compte pour accéder à votre espace personnel.</p>
+                <p>Créez votre compte pour commencer.</p>
 
-                <?php if ($error != ''): ?>
-                    <div id="danger" style="color: red";> <?= $error ?> </div>
-                <?php endif; ?>
-
-                <?php if ($success_message != ''): ?>
-                    <div id="succes" style="color: #00ab0a;"> <?= $success_message ?> </div>
-                <?php endif; ?>
+                <?php
+                if ($error != '') {
+                    echo '<div id="danger" style="color: #721c24; padding: 10px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; margin: 10px 0;">' . htmlspecialchars($error) . '</div>';
+                }
+                ?>
 
                 <br/>
 
-                <form id="signup-form" method="post" onsubmit="return validateForm()">
-                    <div class="form-row">
-                        <div class="input-group">
-                            <label for="username">Nom d'utilisateur</label>
-                            <input type="text" name="username" id="username" placeholder="exemple" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="input-group">
-                            <label for="email">Email</label>
-                            <input type="email" name="email" id="email" placeholder="mail@exemple.com" required>
-                        </div>
+                <form id="register-form" method="post" onsubmit="return validateRegisterForm()">
+                    <div class="input-group">
+                        <label for="username">Nom d'utilisateur</label>
+                        <input type="text" name="username" id="username" required 
+                               value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>">
                     </div>
                     <div class="input-group">
-                        <label for="password">Mot de passe</label>
-                        <input type="password" name="password" id="password" required>
+                        <label for="email">Email</label>
+                        <input type="email" name="email" id="email" required 
+                               value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
+                    </div>
+                    <div class="input-group">
+                        <label for="password_hash">Mot de passe</label>
+                        <input type="password" name="password_hash" id="password" required>
                         <i class="fas fa-eye" onclick="togglePasswordVisibility('password')"></i>
                     </div>
-                    <button type="submit" class="create-account-btn">Créer un compte</button>
+                    <div class="input-group">
+                        <label for="confirm_password">Confirmer le mot de passe</label>
+                        <input type="password" name="confirm_password" id="confirm_password" required>
+                        <i class="fas fa-eye" onclick="togglePasswordVisibility('confirm_password')"></i>
+                    </div>
+                    <button type="submit" name="register" class="create-account-btn">Créer un compte</button>
                 </form>
-
-                <p class="login-link">Vous avez déjà un compte ? <a href="index.php">Connexion</a></p>
+                <p class="login-link">Vous avez déjà un compte ? <a href="index.php">Connectez-vous</a></p>
             </div>
         </div>
-    <script src="script_register.js"></script>
+
+        <script src="script_register.js"></script>
+        
+        <script>
+        // Validation côté client
+        function validateRegisterForm() {
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            if (username === '' || email === '' || password === '' || confirmPassword === '') {
+                alert('Veuillez remplir tous les champs.');
+                return false;
+            }
+            
+            if (username.length < 3) {
+                alert('Le nom d\'utilisateur doit contenir au moins 3 caractères.');
+                return false;
+            }
+            
+            if (password.length < 6) {
+                alert('Le mot de passe doit contenir au moins 6 caractères.');
+                return false;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('Les mots de passe ne correspondent pas.');
+                return false;
+            }
+            
+            return true;
+        }
+        </script>
     </body>
 </html>
